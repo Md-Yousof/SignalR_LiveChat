@@ -1,0 +1,10 @@
+	Project Name	     : SignalR_LiveChat 
+	Project type	     : asp.net web applicaion
+	Technology Used	     : .net framework, HTML, CSS 
+	Programming Language : C#
+	=============================================================================================
+
+	Description	     : SignalR Simple Chat is a real-time chat application built using 
+			       signalR, JQuery and HTML/CSS. IT allows users to send text messages 
+			       and share files in a chat room using Hub class. The application offers 
+			       a simple an user-friendly interface for seamless communication.

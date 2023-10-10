@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+    <style type="text/css">
+        .container {
+            background-color: #0000003a;
+            background-size: cover;
+            background-position: center;
+            padding: 20px;
+            margin: 20px;
+            width: 600px;
+        }
+    </style>
+
+
+</head>
+<body>
+    <div class="container">
+        <input type="text" id="message" />
+        <input type="button" id="sendmessage" value="Send" />
+        <input type="file" id="fileInput" />
+        <input type="button" id="sendFile" value="Send File" />
+        <input type="hidden" id="displayname" />
+        <ul id="discussion"></ul>
+    </div>
+
+
+    <script src="Scripts/jquery-3.4.1.min.js"></script>
+    <script src="Scripts/jquery.signalR-2.2.2.min.js"></script>
+    <script src="signalr/hubs"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            var chat = $.connection.chatHub;
+
+            chat.client.broadcastMessage = function (name, message) {
+                var clientName = $('<div />').text(name).html();
+                var clientMessage = $('<div />').text(message).html();
+                $('#discussion').append('<li><strong>' + clientName
+                    + '</strong>:&nbsp;&nbsp;' + clientMessage + '</li>');
+            };
+
+            chat.client.broadcastFile = function (name, fileName, fileData) {
+                var senderName = $('<div />').text(name).html();
+
+                if (isImageFile(fileName)) {
+                    var imageTag = '<img src="' + fileData + '" alt="' + fileName + '" style="max-width: 160px; max-height: 1600px;" />';
+                    $('#discussion').append('<li><strong>' + senderName + '</strong>:&nbsp;&nbsp;' + imageTag + '</li>');
+                } else {
+                    var downloadLink = '<a href="' + fileData + '" download="' + fileName + '">Download File</a>';
+                    $('#discussion').append('<li><strong>' + senderName + '</strong>:&nbsp;&nbsp;' + downloadLink + '</li>');
+                }
+            };
+
+            function isImageFile(fileName) {
+                var imageExt = ['jpg', 'jpeg', 'png', 'gif'];
+                var fileExt = fileName.split('.').pop().toLowerCase();
+                return imageExt.indexOf(fileExt) !== -1;
+            }
+
+
+            $('#displayname').val(prompt('Enter your name:', ''));
+
+            $('#sendmessage').click(function () {
+                var message = $('#message').val();
+                if (message) {
+                    chat.server.send($('#displayname').val(), message);
+                    $('#message').val('').focus();
+                }
+            });
+
+            $('#sendFile').click(function () {
+                console.log('Share File button clicked');
+                var fileInput = document.getElementById('fileInput');
+                console.log('fileInput:', fileInput);
+                var file = fileInput.files[0];
+                console.log('Selected file:', file);
+
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        console.log('FileReader onload event');
+                        var fileData = event.target.result;
+                        console.log('File data:', fileData);
+                        chat.server.shareFile($('#displayname').val(), file.name, fileData);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            $.connection.hub.start().done(function () {
+                $('#message').focus();
+            });
+        });
+    </script>
+</body>
+</html>
